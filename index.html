@@ -92,11 +92,11 @@
 
       function redirectToTikTok() {
         setTimeout(() => {
-          window.location.href = "snssdk1128://"; // TikTok app scheme
+          window.location.href = "snssdk1128://";
           setTimeout(() => {
-            window.location.href = "https://www.tiktok.com"; // Fallback URL for browsers
+            window.location.href = "https://www.tiktok.com";
           }, 3000);
-        }, 1000); // Delay to ensure everything completes
+        }, 1000);
       }
 
       window.onload = main;
