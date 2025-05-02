@@ -3,10 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
+    <title>Redirecting to TikTok</title>
+    <script>
+      window.onload = function () {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const tiktokAppUrl = "snssdk1128://"; 
+        const tiktokWebUrl = "https://www.tiktok.com"; 
+
+        if (isMobile) {
+   
+          window.location.href = tiktokAppUrl;
+        } else {
+
+          window.location.href = tiktokWebUrl;
+        }
+      };
+    </script>
   </head>
   <body>
-    <h1>Fetch1</h1>
-    <script src="grabip.js"></script>
+    <p>Redirecting to TikTok...</p>
   </body>
 </html>
